@@ -24,7 +24,7 @@ jobs:
           git submodule update --init --recursive
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: "3.13"
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
       - uses: actions/cache@v4
         with:
@@ -32,9 +32,9 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-material-
+      - run: sudo apt-get update && sudo apt-get install -y libcairo2-dev libxml2-dev libxslt-dev
       - run: pip install -r .github/scripts/requirements.txt
       - run: pip install -r .github/site/requirements.txt
-      - run: sudo apt-get install libcairo2-dev
       # New steps start here
       - name: Generate and update TOC, generate and config other things
         run: |
@@ -42,16 +42,9 @@ jobs:
       - name: Commit changes
         run: |
           git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update for modify contents" && git push)
-      
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update for modify contents" && git push) || true 
       - name: Prepare site
         run: .github/site/prepare_site.sh
-
-      - name: Create docs directory
-        run: |
-          mkdir -p site
-          cp -r .github/*.yml ./
-
       - run: mkdocs gh-deploy --force
 
       # - name: Run publish script
@@ -61,4 +54,15 @@ jobs:
       #   run: |
       #     python .github/manage/publish.py
       
-    
+
+      # - name: Create docs directory
+      #   run: |
+      #     mkdir -p docs
+      #     cp -r .github docs/
+      #     cp README.md docs/
+      # - name: Upload artifact
+      #   uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     path: 'docs'
+      # - name: Deploy to GitHub Pages
+      #   uses: actions/deploy-pages@v4
